@@ -4,33 +4,33 @@
 <style>
 :root{--uq:#51247a;--bg:#f4f0f7;--line:#ddd;--muted:#666}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:#222}header{background:var(--uq);color:#fff;padding:22px 30px}header h1{margin:0;font-size:28px}header p{margin:7px 0 0}.wrap{max-width:1050px;margin:22px auto;padding:0 16px}.card{background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 2px 10px #00000010}.sig{font-family:Consolas,monospace;background:#f7f7f7;border:1px solid var(--line);padding:12px;border-radius:8px}.grid{display:grid;grid-template-columns:170px 1fr;gap:10px;align-items:center;max-width:650px}label{font-weight:700}select,input,textarea{padding:9px;border:1px solid #bbb;border-radius:7px;font-size:14px}button{background:var(--uq);color:white;border:0;border-radius:7px;padding:10px 15px;font-weight:700;cursor:pointer}.result{margin-top:14px;padding:12px;border:1px solid var(--line);border-radius:8px;background:#fafafa;font-family:Consolas,monospace;white-space:pre-wrap}textarea{width:100%;min-height:150px;font-family:Consolas,monospace}.small{color:var(--muted);font-size:13px}</style>
 </head><body><header><h1>StudyRoomBookingService</h1><p>Black-box runner — do not inspect the implementation.</p></header><div class="wrap">
-<div class="card"><div class="sig">public static BookingResult checkBooking(String userType, String roomType, int groupSize, int durationMinutes, int startMinutes, boolean weekend);</div><p class="small">Times are minutes after midnight. Write the expected result first.</p></div>
-<div class="card"><h2>Single test</h2><div class="grid">
-<label>userType</label><select id="u"><option>STUDENT</option><option>STAFF</option><option>VISITOR</option><option>OTHER</option></select>
-<label>roomType</label><select id="r"><option>INDIVIDUAL</option><option>GROUP</option><option>LAB</option><option>OTHER</option></select>
+<div class="card"><div class="sig">public static BookingResult checkBooking(int userType, int roomType, int groupSize, int durationMinutes, int startMinutes, int weekend);</div><p class="small">Times are minutes after midnight. Write the expected result first.</p></div>
+<div class="card"><h2>Test</h2><div class="grid">
+<label>userType</label><select id="u"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="0">0</option></select>
+<label>roomType</label><select id="r"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="0">0</option></select>
 <label>groupSize</label><input id="g" type="number" step="1" value="1">
 <label>durationMinutes</label><select id="dur"><option>30</option><option>60</option><option>90</option><option>120</option><option>150</option><option>180</option><option>45</option></select>
 <label>startMinutes</label><input id="st" type="number" step="1" value="480">
-<label>weekend</label><select id="we"><option value="false">false</option><option value="true">true</option></select>
+<label>weekend</label><select id="we"><option value="0">0</option><option value="1">1</option></select>
 </div><p><button onclick="runOne()">Run test</button></p><div id="one" class="result">No test executed.</div></div>
-<div class="card"><h2>Batch tests</h2><p class="small">CSV order: userType,roomType,groupSize,durationMinutes,startMinutes,weekend</p><textarea id="batch">STUDENT,INDIVIDUAL,1,120,480,false
-STAFF,GROUP,8,60,480,false
-STAFF,LAB,4,60,600,true</textarea><p><button onclick="runBatch()">Run batch</button></p><div id="many" class="result">No batch executed.</div></div>
+<div class="card"><h2>Batch tests</h2><p class="small">CSV order: userType,roomType,groupSize,durationMinutes,startMinutes,weekend</p><textarea id="batch">1,1,1,120,480,0
+2,2,8,60,480,0
+2,3,4,60,600,1</textarea><p><button onclick="runBatch()">Run batch</button></p><div id="many" class="result">No batch executed.</div></div>
 </div><script>
 function check(user,room,group,duration,start,weekend){
- const users=['STUDENT','STAFF','VISITOR'], rooms=['INDIVIDUAL','GROUP','LAB'], durs=[30,60,90,120,150,180];
- if(!users.includes(user)||!rooms.includes(room)||!Number.isInteger(group)||group<1||group>12||!durs.includes(duration)||!Number.isInteger(start)||start%30!==0) return {ok:false,reason:'invalid input'};
+ const users=[1,2,3], rooms=[1,2,3], durs=[30,60,90,120,150,180];
+ if(!users.includes(user)||!rooms.includes(room)||(weekend!==0&&weekend!==1)||!Number.isInteger(group)||group<1||group>12||!durs.includes(duration)||!Number.isInteger(start)||start%30!==0) return {ok:false,reason:'invalid input'};
  const end=start+duration;
- if(weekend){if(start<600||end>=1080)return {ok:false,reason:'outside opening hours'}} else {if(start<480||end>1320)return {ok:false,reason:'outside opening hours'}}
+ if(weekend===1){if(start<600||end>=1080)return {ok:false,reason:'outside opening hours'}} else {if(start<480||end>1320)return {ok:false,reason:'outside opening hours'}}
  // Intentionally faulty implementation for the practical.
- if(room==='INDIVIDUAL'){if(group!==1||duration>120)return {ok:false,reason:'room rule'}}
- if(room==='GROUP'){if(group<2||group>=8||duration>180)return {ok:false,reason:'room rule'}}
- if(room==='LAB'){if(group<=3||group>12||duration>120)return {ok:false,reason:'room rule'}}
- if(user==='STUDENT'&&duration>=120)return {ok:false,reason:'student duration'};
- if(user==='VISITOR'){if(room!=='INDIVIDUAL'||weekend||duration>=60)return {ok:false,reason:'visitor rule'}}
+ if(room===1){if(group!==1||duration>120)return {ok:false,reason:'room rule'}}
+ if(room===2){if(group<2||group>=8||duration>180)return {ok:false,reason:'room rule'}}
+ if(room===3){if(group<=3||group>12||duration>120)return {ok:false,reason:'room rule'}}
+ if(user===1&&duration>=120)return {ok:false,reason:'student duration'};
+ if(user===3){if(room!==1||weekend===1||duration>=60)return {ok:false,reason:'visitor rule'}}
  return {ok:true};
 }
 function fmt(x){return x.ok?'ACCEPT':`REJECT reason=${x.reason}`}
-function runOne(){one.textContent=fmt(check(u.value,r.value,parseInt(g.value),parseInt(dur.value),parseInt(st.value),we.value==='true'))}
-function runBatch(){let rows=batch.value.split(/\n+/).map(x=>x.trim()).filter(Boolean),out=[];rows.forEach((line,i)=>{let p=line.split(',').map(x=>x.trim());if(p.length!==6){out.push(`${i+1}. FORMAT ERROR`);return;}out.push(`${i+1}. ${line} -> ${fmt(check(p[0],p[1],parseInt(p[2]),parseInt(p[3]),parseInt(p[4]),p[5].toLowerCase()==='true'))}`)});many.textContent=out.join('\n')}
+function runOne(){one.textContent=fmt(check(parseInt(u.value),parseInt(r.value),parseInt(g.value),parseInt(dur.value),parseInt(st.value),parseInt(we.value)))}
+function runBatch(){let rows=batch.value.split(/\n+/).map(x=>x.trim()).filter(Boolean),out=[];rows.forEach((line,i)=>{let p=line.split(',').map(x=>x.trim());if(p.length!==6){out.push(`${i+1}. FORMAT ERROR`);return;}out.push(`${i+1}. ${line} -> ${fmt(check(parseInt(p[0]),parseInt(p[1]),parseInt(p[2]),parseInt(p[3]),parseInt(p[4]),parseInt(p[5])))}`)});many.textContent=out.join('\n')}
 </script></body></html>

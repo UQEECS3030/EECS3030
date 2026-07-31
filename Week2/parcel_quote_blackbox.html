@@ -4,34 +4,35 @@
 <style>
 :root{--uq:#51247a;--bg:#f4f0f7;--line:#ddd;--muted:#666}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:#222}header{background:var(--uq);color:#fff;padding:22px 30px}header h1{margin:0;font-size:28px}header p{margin:7px 0 0}.wrap{max-width:1000px;margin:22px auto;padding:0 16px}.card{background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 2px 10px #00000010}.sig{font-family:Consolas,monospace;background:#f7f7f7;border:1px solid var(--line);padding:12px;border-radius:8px}.grid{display:grid;grid-template-columns:160px 1fr;gap:10px;align-items:center;max-width:600px}label{font-weight:700}select,input,textarea{padding:9px;border:1px solid #bbb;border-radius:7px;font-size:14px}button{background:var(--uq);color:white;border:0;border-radius:7px;padding:10px 15px;font-weight:700;cursor:pointer}.result{margin-top:14px;padding:12px;border:1px solid var(--line);border-radius:8px;background:#fafafa;font-family:Consolas,monospace;white-space:pre-wrap}textarea{width:100%;min-height:140px;font-family:Consolas,monospace}.small{color:var(--muted);font-size:13px}table{border-collapse:collapse;width:100%;font-size:13px;margin-top:12px}th,td{border:1px solid #ddd;padding:7px;text-align:left}th{background:#f3edf7;color:var(--uq)}</style>
 </head><body><header><h1>ParcelQuoteService</h1><p>Black-box runner — do not inspect the implementation.</p></header><div class="wrap">
-<div class="card"><div class="sig">public static Quote calculate(String destination, String service, double weightKg, boolean member);</div><p class="small">Write the expected result before running each test.</p></div>
-<div class="card"><h2>Single test</h2><div class="grid">
-<label>destination</label><select id="d"><option>LOCAL</option><option>INTERSTATE</option><option>INTERNATIONAL</option><option>UNKNOWN</option></select>
-<label>service</label><select id="s"><option>STANDARD</option><option>EXPRESS</option><option>SAME_DAY</option></select>
+<div class="card"><div class="sig">public static Quote calculate(int destination, int service, double weightKg, int member);</div><p class="small">Write the expected result before running each test.</p></div>
+<div class="card"><h2>Test</h2><div class="grid">
+<label>destination</label><select id="d"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="0">0</option></select>
+<label>service</label><select id="s"><option value="1">1</option><option value="2">2</option><option value="0">0</option></select>
 <label>weightKg</label><input id="w" type="number" step="0.01" value="1">
-<label>member</label><select id="m"><option value="false">false</option><option value="true">true</option></select>
+<label>member</label><select id="m"><option value="0">0</option><option value="1">1</option></select>
 </div><p><button onclick="runOne()">Run test</button></p><div id="one" class="result">No test executed.</div></div>
-<div class="card"><h2>Batch tests</h2><p class="small">CSV order: destination,service,weightKg,member</p><textarea id="batch">LOCAL,STANDARD,1,false
-LOCAL,EXPRESS,10,false
-INTERNATIONAL,STANDARD,20,true</textarea><p><button onclick="runBatch()">Run batch</button></p><div id="many" class="result">No batch executed.</div></div>
+<div class="card"><h2>Batch tests</h2><p class="small">CSV order: destination,service,weightKg,member</p><textarea id="batch">1,1,1,0
+1,2,10,0
+3,1,20,1</textarea><p><button onclick="runBatch()">Run batch</button></p><div id="many" class="result">No batch executed.</div></div>
 </div><script>
 function quote(destination,service,weightKg,member){
- const ds=['LOCAL','INTERSTATE','INTERNATIONAL'], ss=['STANDARD','EXPRESS'];
+ const ds=[1,2,3], ss=[1,2];
  if(!ds.includes(destination)) return {ok:false,reason:'invalid destination'};
  if(!ss.includes(service)) return {ok:false,reason:'invalid service'};
+ if(member!==0 && member!==1) return {ok:false,reason:'invalid member value'};
  if(!Number.isFinite(weightKg)) return {ok:false,reason:'invalid weight'};
  // Intentionally faulty implementation for the practical.
  if(weightKg < 0 || weightKg >= 30) return {ok:false,reason:'weight out of range'};
- if(destination==='INTERNATIONAL' && service==='EXPRESS') return {ok:false,reason:'express unavailable'};
- if(service==='EXPRESS' && weightKg >= 10) return {ok:false,reason:'express weight limit exceeded'};
- if(destination==='INTERNATIONAL' && weightKg > 20) return {ok:false,reason:'international weight limit exceeded'};
- let base=destination==='LOCAL'?(service==='EXPRESS'?10:6):destination==='INTERSTATE'?(service==='EXPRESS'?18:12):25;
+ if(destination===3 && service===2) return {ok:false,reason:'express unavailable'};
+ if(service===2 && weightKg >= 10) return {ok:false,reason:'express weight limit exceeded'};
+ if(destination===3 && weightKg > 20) return {ok:false,reason:'international weight limit exceeded'};
+ let base=destination===1?(service===2?10:6):destination===2?(service===2?18:12):25;
  let surcharge=weightKg<=1?0:weightKg<5?5:weightKg<=10?10:weightKg<=20?18:30;
  let total=base+surcharge;
- if(member && destination==='LOCAL') total*=0.9;
+ if(member===1 && destination===1) total*=0.9;
  return {ok:true,fee:Math.round(total*100)/100};
 }
 function fmt(r){return r.ok?`ACCEPT fee=$${r.fee.toFixed(2)}`:`REJECT reason=${r.reason}`}
-function runOne(){const r=quote(d.value,s.value,parseFloat(w.value),m.value==='true');one.textContent=fmt(r)}
-function runBatch(){let rows=batch.value.split(/\n+/).map(x=>x.trim()).filter(Boolean), out=[];rows.forEach((line,i)=>{let p=line.split(',').map(x=>x.trim());if(p.length!==4){out.push(`${i+1}. FORMAT ERROR`);return;}out.push(`${i+1}. ${line} -> ${fmt(quote(p[0],p[1],parseFloat(p[2]),p[3].toLowerCase()==='true'))}`)});many.textContent=out.join('\n')}
+function runOne(){const r=quote(parseInt(d.value),parseInt(s.value),parseFloat(w.value),parseInt(m.value));one.textContent=fmt(r)}
+function runBatch(){let rows=batch.value.split(/\n+/).map(x=>x.trim()).filter(Boolean), out=[];rows.forEach((line,i)=>{let p=line.split(',').map(x=>x.trim());if(p.length!==4){out.push(`${i+1}. FORMAT ERROR`);return;}out.push(`${i+1}. ${line} -> ${fmt(quote(parseInt(p[0]),parseInt(p[1]),parseFloat(p[2]),parseInt(p[3])))}`)});many.textContent=out.join('\n')}
 </script></body></html>
